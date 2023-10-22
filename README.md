@@ -1,2 +1,2 @@
 # TranscriptionFunction
-voice transcription rep
+voice transcription repo
