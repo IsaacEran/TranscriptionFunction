@@ -1,25 +1,40 @@
-import azure.functions as func
 import logging
+import azure.functions as func
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
-
-@app.route(route="FileUpload")
-def FileUpload(req: func.HttpRequest) -> func.HttpResponse:
+def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    # Handle GET request: Render the HTML form
+    if req.method == "GET":
+        return func.HttpResponse(render_form(), mimetype="text/html")
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    # Handle POST request: Process the uploaded file
+    elif req.method == "POST":
+        audio_file = req.files.get('file')
+        if not audio_file:
+            return func.HttpResponse("No file uploaded.", status_code=400)
+
+        audio_data = audio_file.stream.read()
+        # ... Further code to handle transcription ...
+
+        # Return a placeholder response for now
+        return func.HttpResponse("File uploaded successfully.", status_code=200)
+
     else:
         return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
+            "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
+            status_code=200
         )
+
+def render_form():
+    return """
+    <html>
+    <body>
+    <form action="/api/FileUpload" method="post" enctype="multipart/form-data">
+        Select audio to upload:
+        <input type="file" name="file" id="file">
+        <input type="submit" value="Upload Audio" name="submit">
+    </form>
+    </body>
+    </html>
+    """
